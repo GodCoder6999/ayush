@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayush Academia-Industry Skill Portal</title>
+    <style>
+        :root {
+            --primary: #1b5e20;
+            --primary-light: #e8f5e9;
+            --accent: #f57f17;
+            --dark: #263238;
+            --gray: #f4f6f8;
+            --border: #cfd8dc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--gray); color: var(--dark); padding-bottom: 40px; }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #144617; }
+
+        .job-card {
+            border-left: 5px solid var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .badge-match { background: var(--primary-light); color: var(--primary); }
+        .badge-gap { background: #ffebee; color: #c62828; }
+        .score-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .score-fill { height: 100%; background: var(--primary); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🌿 Ayush Skill & Placement Portal</h2>
+    <span>All India Institute of Ayurveda Collaboration</span>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h3>Skill Mapping & Career Fit Analyzer</h3>
+        <p style="color: #666; margin-bottom: 1rem;">Enter your verified skills to discover tailored industry internships, research collaborations, and skill gap recommendations.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label>User Role</label>
+                <select name="role">
+                    <option value="Student">Student (Internship & Placement)</option>
+                    <option value="Academician">Academician / Faculty (Industry Exposure & R&D)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Your Skills (comma separated)</label>
+                <input type="text" name="skills" placeholder="e.g. Phytochemistry, Standardization, Clinical Trials" required>
+            </div>
+            
+            <button type="submit">Analyze Skill Match</button>
+        </form>
+    </div>
+
+    {% if results %}
+    <h3>Matching Opportunities & Gap Analysis</h3>
+    <br>
+    {% for job in results %}
+    <div class="card job-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4>{{ job.title }} <span style="font-size: 0.85rem; color: #666;">at {{ job.company }}</span></h4>
+            <strong>{{ job.match_score }}% Match</strong>
+        </div>
+        
+        <div class="score-bar">
+            <div class="score-fill" style="width: {{ job.match_score }}%;"></div>
+        </div>
+        
+        <p style="font-size: 0.9rem; color: #555;">
+            <strong>Type:</strong> {{ job.type }} | <strong>Location:</strong> {{ job.location }} | <strong>Offer:</strong> {{ job.stipend }}
+        </p>
+
+        <div>
+            <strong>Acquired Matching Skills:</strong>
+            {% for s in job.matched_skills %}
+                <span class="badge badge-match">{{ s }}</span>
+            {% else %}
+                <span style="font-size: 0.85rem; color: #888;">None</span>
+            {% endfor %}
+        </div>
+
+        <div>
+            <strong>Identified Skill Gaps to Bridge:</strong>
+            {% for s in job.missing_skills %}
+                <span class="badge badge-gap">{{ s }}</span>
+            {% else %}
+                <span class="badge badge-match">All Requirements Met!</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+
+</body>
+</html>
