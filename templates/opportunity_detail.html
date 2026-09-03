@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% from "_macros.html" import match_pill %}
+{% block title %}{{ opp.title }} &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<p class="small"><a href="{{ url_for('opportunities') }}">&larr; Back to opportunities</a></p>
+
+<div class="grid grid-sidebar">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h1>{{ opp.title }}</h1>
+        <p class="muted" style="margin:0">{{ opp.org }} &middot; {{ opp.location }}</p>
+      </div>
+      <span class="badge badge-accent">{{ opp.type }}</span>
+    </div>
+
+    <p>{{ opp.description }}</p>
+
+    <div class="grid grid-4 mb">
+      <div><div class="stat-label">Duration</div><b>{{ opp.duration }}</b></div>
+      <div><div class="stat-label">Compensation</div><b>{{ opp.stipend }}</b></div>
+      <div><div class="stat-label">Openings</div><b>{{ opp.openings }}</b></div>
+      <div><div class="stat-label">Open to</div><b style="text-transform:capitalize">{{ opp.audience }}s</b></div>
+    </div>
+
+    <h3>Eligibility</h3>
+    <p class="muted">{{ opp.eligibility }}</p>
+
+    <h3>Required skills</h3>
+    <div>
+      {% for s in opp.skills %}
+        {% if user.role == 'student' %}
+          <span class="pill {{ 'pill-have' if skills.get(s, 0) >= 60 else 'pill-need' }}">
+            {{ s }} &middot; you: {{ skills.get(s, 0) }}%</span>
+        {% else %}
+          <span class="pill">{{ s }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if user.role in ['student', 'academician'] %}
+      <div class="mt">
+        {% if applied %}
+          <button class="btn" disabled>Application submitted</button>
+          <a class="btn btn-ghost" href="{{ url_for('applications') }}">Track application</a>
+        {% else %}
+          <form method="post" action="{{ url_for('apply', oid=opp.id) }}">
+            <button type="submit" class="btn">Apply now</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="grid">
+    {% if user.role == 'student' %}
+    <div class="card">
+      <div class="card-head"><h3>Skill compatibility</h3></div>
+      <div class="stat-value">{{ match }}%</div>
+      <div class="meter"><div style="width: {{ match }}%"></div></div>
+      {% if missing %}
+        <p class="small muted" style="margin-top:.6rem">Skills to strengthen before applying:</p>
+        <div>{% for s in missing %}<span class="pill pill-need">{{ s }}</span>{% endfor %}</div>
+      {% else %}
+        <p class="small muted" style="margin-top:.6rem">You meet every listed skill requirement.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if programs %}
+    <div class="card">
+      <div class="card-head"><h3>Prepare with these programmes</h3></div>
+      <ul class="list">
+        {% for p in programs %}
+        <li>
+          <div class="item-title">{{ p.title }}</div>
+          <div class="item-meta">{{ p.provider }} &middot; {{ p.type }} &middot; {{ p.duration }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+      <a class="btn btn-sm btn-ghost mt" href="{{ url_for('learning') }}">All programmes</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

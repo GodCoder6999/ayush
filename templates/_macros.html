@@ -1,0 +1,52 @@
+{# Reusable Jinja2 components #}
+
+{% macro skill_bar(name, value) %}
+<div class="skill">
+  <div class="skill-head"><b>{{ name }}</b><span>{{ value }}%</span></div>
+  <div class="bar">
+    <div class="bar-fill {{ 'high' if value >= 70 else ('mid' if value >= 50 else 'low') }}"
+         style="width: {{ value }}%"></div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro match_pill(value) %}
+<span class="match">
+  <span class="match-dot {{ '' if value >= 70 else ('mid' if value >= 45 else 'low') }}"></span>
+  {{ value }}% match
+</span>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+{% set css = {'Applied': 'badge-muted', 'Under Review': 'badge-warn',
+              'Shortlisted': 'badge-brand', 'Selected': 'badge-ok',
+              'Rejected': 'badge-danger'} %}
+<span class="badge {{ css.get(status, 'badge-muted') }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro verified_badge(flag) %}
+{% if flag %}<span class="badge badge-ok">Verified</span>
+{% else %}<span class="badge badge-warn">Pending verification</span>{% endif %}
+{% endmacro %}
+
+{% macro opportunity_card(o, applied_ids=[]) %}
+<article class="card opp-card">
+  <div>
+    <div class="opp-title">{{ o.title }}</div>
+    <div class="opp-org">{{ o.org }} &middot; {{ o.location }}</div>
+  </div>
+  <div>
+    <span class="badge badge-accent">{{ o.type }}</span>
+    <span class="badge badge-muted">{{ o.duration }}</span>
+  </div>
+  <div>{% for s in o.skills %}<span class="pill">{{ s }}</span>{% endfor %}</div>
+  <p class="small muted">{{ o.stipend }} &middot; {{ o.openings }} opening(s)</p>
+  <div class="opp-foot">
+    {{ match_pill(o.match) }}
+    <a class="btn btn-sm {{ 'btn-ghost' if o.id in applied_ids else '' }}"
+       href="{{ url_for('opportunity_detail', oid=o.id) }}">
+      {{ 'Applied' if o.id in applied_ids else 'View & Apply' }}
+    </a>
+  </div>
+</article>
+{% endmacro %}

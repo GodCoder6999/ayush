@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skill_bar, match_pill, status_badge, opportunity_card %}
+{% block title %}Dashboard &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+
+{# ===================== STUDENT ===================== #}
+{% if user.role == 'student' %}
+<section class="hero">
+  <h1>Hello, {{ user.name }}</h1>
+  <p>{{ user.branch }} &middot; {{ user.year }} &middot; {{ user.institution }} &middot; CGPA {{ user.cgpa }}</p>
+</section>
+
+{% if not portfolio.assessment_done %}
+<div class="card mb">
+  <div class="card-head">
+    <div>
+      <h2>Start with the skill assessment</h2>
+      <p class="muted small" style="margin:0">Answer {{ 10 }} questions on technical and soft
+        skills. The portal builds your skill profile and unlocks personalised role,
+        opportunity and learning recommendations.</p>
+    </div>
+    <a class="btn" href="{{ url_for('assessment') }}">Take assessment</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid grid-4 mb">
+  <div class="stat">
+    <div class="stat-label">Placement readiness</div>
+    <div class="stat-value">{{ readiness }}%</div>
+    <div class="meter"><div style="width: {{ readiness }}%"></div></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Strengths</div>
+    <div class="stat-value">{{ strengths|length }}</div>
+    <div class="stat-foot">Skills at 70% or above</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Skill gaps</div>
+    <div class="stat-value">{{ gaps|length }}</div>
+    <div class="stat-foot">Skills below 50%</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Applications</div>
+    <div class="stat-value">{{ applications|length }}</div>
+    <div class="stat-foot"><a href="{{ url_for('applications') }}">Track status</a></div>
+  </div>
+</div>
+
+<div class="grid grid-sidebar">
+  <div class="grid">
+    <div class="card">
+      <div class="card-head">
+        <h2>Recommended opportunities</h2>
+        <a class="small" href="{{ url_for('opportunities') }}">Browse all</a>
+      </div>
+      {% if matches %}
+      <ul class="list">
+        {% for o in matches %}
+        <li>
+          <div class="item-head">
+            <span class="item-title">
+              <a href="{{ url_for('opportunity_detail', oid=o.id) }}">{{ o.title }}</a></span>
+            {{ match_pill(o.match) }}
+          </div>
+          <div class="item-meta">{{ o.org }} &middot; {{ o.type }} &middot; {{ o.location }}
+            &middot; {{ o.stipend }}</div>
+          <div style="margin-top:.35rem">
+            {% for s in o.skills %}<span class="pill">{{ s }}</span>{% endfor %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<div class="empty">No opportunities yet.</div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Career roles mapped to your profile</h2>
+        <a class="small" href="{{ url_for('skill_map') }}">Full skill map</a>
+      </div>
+      <div class="grid grid-3">
+        {% for r in roles %}
+        <div class="card" style="box-shadow:none">
+          <div class="item-title">{{ r.title }}</div>
+          <div class="item-meta">{{ r.industry }}</div>
+          <div class="meter"><div style="width: {{ r.match }}%"></div></div>
+          <div class="small muted">{{ r.match }}% fit &middot; demand: {{ r.demand }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-head"><h3>Skill profile</h3>
+        <a class="small" href="{{ url_for('assessment') }}">Retake</a></div>
+      {% if skills %}
+        {% for name, value in skills|dictsort(by='value', reverse=true) %}
+          {{ skill_bar(name, value) }}
+        {% endfor %}
+      {% else %}
+        <div class="empty small">No profile yet. Take the skill assessment.</div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Close your gaps</h3>
+        <a class="small" href="{{ url_for('learning') }}">All programmes</a></div>
+      <ul class="list">
+        {% for p in programs %}
+        <li>
+          <div class="item-title">{{ p.title }}</div>
+          <div class="item-meta">{{ p.provider }} &middot; {{ p.type }} &middot; {{ p.duration }}</div>
+          <div style="margin-top:.35rem">
+            {% for s in p.closes %}<span class="pill pill-need">{{ s }}</span>{% endfor %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Digital portfolio</h3>
+        <a class="small" href="{{ url_for('portfolio') }}">Open</a></div>
+      <p class="small muted" style="margin:0">
+        {{ portfolio.certifications|length }} certifications &middot;
+        {{ portfolio.projects|length }} projects &middot;
+        {{ portfolio.internships|length }} internships &middot;
+        {{ portfolio.achievements|length }} achievements
+      </p>
+    </div>
+  </div>
+</div>
+
+{# ===================== ACADEMICIAN ===================== #}
+{% elif user.role == 'academician' %}
+<section class="hero">
+  <h1>Welcome, {{ user.name }}</h1>
+  <p>{{ user.designation }} &middot; {{ user.department }} &middot; {{ user.institution }}</p>
+</section>
+
+<div class="grid grid-4 mb">
+  <div class="stat"><div class="stat-label">Faculty openings</div>
+    <div class="stat-value">{{ matches|length }}+</div>
+    <div class="stat-foot">Internships, FDPs, consultancy</div></div>
+  <div class="stat"><div class="stat-label">My applications</div>
+    <div class="stat-value">{{ applications|length }}</div>
+    <div class="stat-foot"><a href="{{ url_for('applications') }}">Track status</a></div></div>
+  <div class="stat"><div class="stat-label">Collaborations</div>
+    <div class="stat-value">{{ collaborations|length }}+</div>
+    <div class="stat-foot">Lectures, research, mentorship</div></div>
+  <div class="stat"><div class="stat-label">Department</div>
+    <div class="stat-value" style="font-size:1.1rem">{{ user.department }}</div>
+    <div class="stat-foot">{{ user.institution }}</div></div>
+</div>
+
+<div class="grid grid-sidebar">
+  <div class="card">
+    <div class="card-head">
+      <h2>Industry opportunities for faculty</h2>
+      <a class="small" href="{{ url_for('opportunities') }}">Browse all</a>
+    </div>
+    <ul class="list">
+      {% for o in matches %}
+      <li>
+        <div class="item-head">
+          <span class="item-title">
+            <a href="{{ url_for('opportunity_detail', oid=o.id) }}">{{ o.title }}</a></span>
+          <span class="badge badge-accent">{{ o.type }}</span>
+        </div>
+        <div class="item-meta">{{ o.org }} &middot; {{ o.location }} &middot; {{ o.duration }}
+          &middot; {{ o.stipend }}</div>
+        <p class="small muted" style="margin:.35rem 0 0">{{ o.description }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Collaboration openings</h3>
+      <a class="small" href="{{ url_for('collaboration') }}">View all</a></div>
+    <ul class="list">
+      {% for c in collaborations %}
+      <li>
+        <div class="item-title">{{ c.title }}</div>
+        <div class="item-meta">{{ c.org }} &middot; {{ c.type }}</div>
+        <div class="small muted">{{ c.slots }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{# ===================== INDUSTRY ===================== #}
+{% elif user.role == 'industry' %}
+<section class="hero">
+  <h1>{{ company }}</h1>
+  <p>{{ user.name }} &middot; {{ user.designation }} &middot; Post openings, review skill-matched
+     candidates and publish learning programmes.</p>
+</section>
+
+<div class="grid grid-4 mb">
+  <div class="stat"><div class="stat-label">Active postings</div>
+    <div class="stat-value">{{ postings|length }}</div>
+    <div class="stat-foot"><a href="{{ url_for('industry_post') }}">Post another</a></div></div>
+  <div class="stat"><div class="stat-label">Applicants</div>
+    <div class="stat-value">{{ applicants|length }}</div>
+    <div class="stat-foot"><a href="{{ url_for('industry_applicants') }}">Review</a></div></div>
+  <div class="stat"><div class="stat-label">Shortlisted</div>
+    <div class="stat-value">{{ shortlisted|length }}</div>
+    <div class="stat-foot">Skill-compatible candidates</div></div>
+  <div class="stat"><div class="stat-label">Learning programmes</div>
+    <div class="stat-value">{{ programs|length }}</div>
+    <div class="stat-foot"><a href="{{ url_for('learning') }}">Manage</a></div></div>
+</div>
+
+<div class="grid grid-sidebar">
+  <div class="card">
+    <div class="card-head"><h2>Your postings</h2>
+      <a class="btn btn-sm" href="{{ url_for('industry_post') }}">New posting</a></div>
+    {% if postings %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Type</th><th>For</th><th>Skills</th>
+          <th>Openings</th><th>Applicants</th></tr></thead>
+        <tbody>
+          {% for o in postings %}
+          <tr>
+            <td><a href="{{ url_for('opportunity_detail', oid=o.id) }}">{{ o.title }}</a></td>
+            <td>{{ o.type }}</td>
+            <td style="text-transform:capitalize">{{ o.audience }}</td>
+            <td>{% for s in o.skills %}<span class="pill">{{ s }}</span>{% endfor %}</td>
+            <td>{{ o.openings }}</td>
+            <td>{{ applicants|selectattr('opportunity_id', 'equalto', o.id)|list|length }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">No postings yet.</div>{% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Recent applications</h3>
+      <a class="small" href="{{ url_for('industry_applicants') }}">All</a></div>
+    <ul class="list">
+      {% for a in applicants[:5] %}
+      <li>
+        <div class="item-head">
+          <span class="item-title">{{ a.username }}</span>
+          {{ status_badge(a.status) }}
+        </div>
+        <div class="item-meta">{{ a.match }}% skill match &middot; applied {{ a.applied_on }}</div>
+      </li>
+      {% else %}
+      <li class="muted small">No applications yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{# ===================== INSTITUTION ===================== #}
+{% else %}
+<section class="hero">
+  <h1>{{ user.institution }}</h1>
+  <p>{{ user.designation }} &middot; Monitor skill development, internship participation and
+     placement progress across the institution.</p>
+</section>
+
+<div class="grid grid-4 mb">
+  <div class="stat"><div class="stat-label">Students</div>
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-foot">{{ assessed_count }} assessed</div></div>
+  <div class="stat"><div class="stat-label">Avg readiness</div>
+    <div class="stat-value">{{ avg_readiness }}%</div>
+    <div class="meter"><div style="width: {{ avg_readiness }}%"></div></div></div>
+  <div class="stat"><div class="stat-label">Applications</div>
+    <div class="stat-value">{{ total_applications }}</div>
+    <div class="stat-foot">{{ shortlisted_count }} shortlisted</div></div>
+  <div class="stat"><div class="stat-label">Opportunities</div>
+    <div class="stat-value">{{ opportunity_count }}</div>
+    <div class="stat-foot">{{ program_count }} learning programmes</div></div>
+</div>
+
+<div class="grid grid-sidebar">
+  <div class="card">
+    <div class="card-head"><h2>Student progress</h2>
+      <a class="small" href="{{ url_for('analytics') }}">Full analytics</a></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Branch</th><th>Readiness</th>
+          <th>Applications</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td>{{ s.profile.name }}</td>
+            <td>{{ s.profile.branch }}</td>
+            <td>
+              <div class="meter" style="min-width:90px"><div style="width: {{ s.readiness }}%"></div></div>
+              <span class="small muted">{{ s.readiness }}%</span>
+            </td>
+            <td>{{ s.applications }}</td>
+            <td>
+              {% if s.placed %}<span class="badge badge-ok">Placed</span>
+              {% elif s.shortlisted %}<span class="badge badge-brand">Shortlisted</span>
+              {% elif s.assessed %}<span class="badge badge-muted">Assessed</span>
+              {% else %}<span class="badge badge-warn">Not assessed</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Institutional skill gaps</h3></div>
+    {% for name, value in gap_skills %}
+      {{ skill_bar(name, value) }}
+    {% endfor %}
+    <p class="small muted" style="margin-top:.6rem">Lowest average scores across assessed
+      students. Use these to plan FDPs and training.</p>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

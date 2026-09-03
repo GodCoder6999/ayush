@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Skill Assessment &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Skill assessment</h1>
+    <p class="muted">Questionnaire shared by industry partners. Your answers generate a skill
+       profile that drives role, opportunity and learning recommendations.</p>
+  </div>
+  <span class="badge badge-brand">{{ questions|length }} questions &middot; ~5 minutes</span>
+</div>
+
+<form method="post">
+  {% for q in questions %}
+  <div class="question">
+    <div class="q-index">Question {{ loop.index }} of {{ questions|length }} &middot;
+      {{ q.skill }} &middot; {{ q.type }} skill</div>
+    <h3>{{ q.text }}</h3>
+    <div class="options">
+      {% for opt in q.options %}
+      <label class="option">
+        <input type="radio" name="{{ q.id }}" value="{{ loop.index0 }}" required>
+        <span>{{ opt.text }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="toolbar mt">
+    <button type="submit" class="btn">Submit and generate skill profile</button>
+    <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

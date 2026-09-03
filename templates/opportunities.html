@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import opportunity_card %}
+{% block title %}Opportunities &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{% if user.role == 'academician' %}Faculty opportunities{% else %}Internships &amp; placements{% endif %}</h1>
+    <p class="muted">
+      {% if user.role == 'academician' %}
+        Faculty internships, industrial training, FDPs, consultancy and joint research posted by industry.
+      {% elif user.role == 'student' %}
+        Search, filter and apply. Cards are ranked by how well your skill profile matches.
+      {% else %}
+        All student-facing internships, apprenticeships, live projects and jobs on the portal.
+      {% endif %}
+    </p>
+  </div>
+  <span class="badge badge-brand">{{ items|length }} result(s)</span>
+</div>
+
+<form class="card mb" method="get">
+  <div class="toolbar">
+    <div class="field grow">
+      <label for="q">Search by title, company or skill</label>
+      <input type="search" id="q" name="q" value="{{ query }}" placeholder="e.g. python, analyst, TechNova">
+    </div>
+    <div class="field">
+      <label for="type">Type</label>
+      <select id="type" name="type">
+        <option value="">All types</option>
+        {% for t in types %}
+        <option value="{{ t }}" {{ 'selected' if t == otype else '' }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn">Apply filters</button>
+    <a class="btn btn-ghost" href="{{ url_for('opportunities') }}">Reset</a>
+  </div>
+</form>
+
+{% if items %}
+<div class="grid grid-3">
+  {% for o in items %}{{ opportunity_card(o, applied_ids) }}{% endfor %}
+</div>
+{% else %}
+<div class="empty">No opportunities match your search. Try a different keyword or type.</div>
+{% endif %}
+{% endblock %}

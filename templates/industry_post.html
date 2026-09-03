@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Post Opportunity &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Post an opportunity</h1>
+    <p class="muted">Publish an internship, apprenticeship, live project, job opening or a
+       faculty programme. Candidates are matched automatically on required skills.</p>
+  </div>
+</div>
+
+<form method="post" class="grid grid-sidebar">
+  <div class="card">
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" placeholder="e.g. Frontend Development Intern" required>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="type">Opportunity type</label>
+        <select id="type" name="type">
+          <option>Internship</option>
+          <option>Job</option>
+          <option>Apprenticeship</option>
+          <option>Live Project</option>
+          <option>Faculty Internship</option>
+          <option>Industrial Training</option>
+          <option>FDP</option>
+          <option>Consultancy</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="audience">Open to</label>
+        <select id="audience" name="audience">
+          <option value="student">Students</option>
+          <option value="academician">Academicians</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" placeholder="e.g. Pune (Hybrid)">
+      </div>
+      <div class="field">
+        <label for="duration">Duration</label>
+        <input type="text" id="duration" name="duration" placeholder="e.g. 6 months">
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="stipend">Stipend / CTC</label>
+        <input type="text" id="stipend" name="stipend" placeholder="e.g. Rs 20,000 / month">
+      </div>
+      <div class="field">
+        <label for="openings">Openings</label>
+        <input type="number" id="openings" name="openings" min="1" value="1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="eligibility">Eligibility</label>
+      <input type="text" id="eligibility" name="eligibility"
+             placeholder="e.g. 3rd / 4th year B.Tech, CGPA 7.0 and above">
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description"
+                placeholder="Role, responsibilities, mentorship and outcomes"></textarea>
+    </div>
+
+    <button type="submit" class="btn">Publish opportunity</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Required skills</h3></div>
+    <p class="small muted">Selected skills drive candidate matching and shortlisting.</p>
+    <div class="options">
+      {% for s in all_skills %}
+      <label class="option">
+        <input type="checkbox" name="skills" value="{{ s }}">
+        <span>{{ s }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+</form>
+{% endblock %}

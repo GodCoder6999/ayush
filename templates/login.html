@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in &middot; Academia-Industry Collaboration Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="login-page">
+
+  <section class="login-side">
+    <span class="badge badge-muted" style="width: max-content">Smart India Hackathon Prototype</span>
+    <h1 class="mt">Academia&ndash;Industry Collaboration Portal</h1>
+    <p>One platform connecting students, academicians, industries and institutions for
+       skill mapping, internships and placements.</p>
+    <ul class="feature-list">
+      <li>Skill assessment that generates a profile of strengths and gaps</li>
+      <li>Skill mapping to job roles, industries and learning programmes</li>
+      <li>Internships, apprenticeships, live projects and entry-level jobs</li>
+      <li>Faculty internships, FDPs, consultancy and joint research</li>
+      <li>Verified digital portfolios and institution-wide analytics</li>
+    </ul>
+  </section>
+
+  <section class="login-main">
+    <div class="login-box">
+      <h2>Sign in to your account</h2>
+      <p class="muted small">Role-based access for students, academicians, industry and institutions.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <p class="small muted mb">Quick demo logins:</p>
+      <div class="role-switch">
+        <button type="button" class="role-btn" onclick="useRole('student', 'student123')">
+          <b>Student</b><span>Ayush Sharma</span></button>
+        <button type="button" class="role-btn" onclick="useRole('faculty', 'faculty123')">
+          <b>Academician</b><span>Dr. Meera Iyer</span></button>
+        <button type="button" class="role-btn" onclick="useRole('industry', 'industry123')">
+          <b>Industry</b><span>TechNova Solutions</span></button>
+        <button type="button" class="role-btn" onclick="useRole('institution', 'institution123')">
+          <b>Institution</b><span>Placement Cell</span></button>
+      </div>
+
+      <div class="divider">or sign in manually</div>
+
+      <form method="post" action="{{ url_for('login') }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username"
+                 placeholder="e.g. student" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 autocomplete="current-password" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn btn-block">Sign in</button>
+      </form>
+
+      <p class="small muted mt">
+        Other demo students: <b>priya / priya123</b>, <b>rahul / rahul123</b>
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Role shortcut buttons: fill the credentials and submit the form.
+  function useRole(username, password) {
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
+    document.querySelector('form').submit();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skill_bar, verified_badge %}
+{% block title %}Digital Portfolio &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Digital portfolio</h1>
+    <p class="muted">{{ user.name }} &middot; {{ user.branch }} &middot; {{ user.year }}
+       &middot; {{ user.institution }} &middot; CGPA {{ user.cgpa }}</p>
+  </div>
+  <div>
+    <span class="badge badge-ok">{{ verified }} of {{ total }} records verified</span>
+    <span class="badge badge-brand">Readiness {{ readiness }}%</span>
+  </div>
+</div>
+
+<div class="grid grid-sidebar">
+  <div class="grid">
+    <div class="card">
+      <div class="card-head"><h2>Certifications</h2>
+        <span class="badge badge-muted">{{ portfolio.certifications|length }}</span></div>
+      <ul class="list">
+        {% for c in portfolio.certifications %}
+        <li>
+          <div class="item-head">
+            <span class="item-title">{{ c.name }}</span>{{ verified_badge(c.verified) }}
+          </div>
+          <div class="item-meta">{{ c.issuer }} &middot; {{ c.year }}</div>
+        </li>
+        {% else %}<li class="muted small">No certifications recorded.</li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Projects</h2>
+        <span class="badge badge-muted">{{ portfolio.projects|length }}</span></div>
+      <ul class="list">
+        {% for p in portfolio.projects %}
+        <li>
+          <div class="item-head">
+            <span class="item-title">{{ p.name }}</span>{{ verified_badge(p.verified) }}
+          </div>
+          <div class="item-meta">{{ p.tech }}</div>
+          <p class="small muted" style="margin:.25rem 0 0">{{ p.detail }}</p>
+        </li>
+        {% else %}<li class="muted small">No projects recorded.</li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Internships</h2>
+        <span class="badge badge-muted">{{ portfolio.internships|length }}</span></div>
+      <ul class="list">
+        {% for i in portfolio.internships %}
+        <li>
+          <div class="item-head">
+            <span class="item-title">{{ i.role }} &middot; {{ i.org }}</span>
+            {{ verified_badge(i.verified) }}
+          </div>
+          <div class="item-meta">{{ i.duration }}</div>
+          <p class="small muted" style="margin:.25rem 0 0"><b>Mentor feedback:</b> {{ i.feedback }}</p>
+        </li>
+        {% else %}<li class="muted small">No internship records yet.</li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Achievements</h2>
+        <span class="badge badge-muted">{{ portfolio.achievements|length }}</span></div>
+      <ul class="list">
+        {% for a in portfolio.achievements %}
+        <li>
+          <div class="item-head">
+            <span class="item-title">{{ a.name }}</span>{{ verified_badge(a.verified) }}
+          </div>
+          <div class="item-meta">{{ a.year }}</div>
+        </li>
+        {% else %}<li class="muted small">No achievements recorded.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-head"><h3>Verified skills</h3></div>
+      {% if skills %}
+        {% for name, value in skills|dictsort(by='value', reverse=true) %}
+          {{ skill_bar(name, value) }}
+        {% endfor %}
+      {% else %}
+        <div class="empty small">Take the skill assessment to populate this section.</div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Add a record</h3></div>
+      <form method="post" action="{{ url_for('portfolio_add') }}">
+        <div class="field">
+          <label for="section">Section</label>
+          <select id="section" name="section">
+            <option value="certifications">Certification</option>
+            <option value="projects">Project</option>
+            <option value="achievements">Achievement</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" placeholder="e.g. AWS Cloud Practitioner" required>
+        </div>
+        <div class="field">
+          <label for="detail">Issuer / details</label>
+          <input type="text" id="detail" name="detail" placeholder="e.g. Amazon Web Services">
+        </div>
+        <button type="submit" class="btn btn-block">Add record</button>
+        <p class="small muted mt" style="margin-bottom:0">New records stay marked
+          <b>pending verification</b> until the institution approves them.</p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

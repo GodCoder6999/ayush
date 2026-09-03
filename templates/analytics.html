@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skill_bar %}
+{% block title %}Analytics &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Institutional analytics</h1>
+    <p class="muted">Skill development, internship participation and placement progress across
+       the institution.</p>
+  </div>
+</div>
+
+<div class="grid grid-4 mb">
+  <div class="stat"><div class="stat-label">Total students</div>
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-foot">{{ assessed_count }} completed assessment</div></div>
+  <div class="stat"><div class="stat-label">Placement-ready (70%+)</div>
+    <div class="stat-value">{{ ready_count }}</div>
+    <div class="stat-foot">Avg readiness {{ avg_readiness }}%</div></div>
+  <div class="stat"><div class="stat-label">Shortlisted</div>
+    <div class="stat-value">{{ shortlisted_count }}</div>
+    <div class="stat-foot">{{ total_applications }} total applications</div></div>
+  <div class="stat"><div class="stat-label">Placed</div>
+    <div class="stat-value">{{ placed_count }}</div>
+    <div class="stat-foot">{{ opportunity_count }} live opportunities</div></div>
+</div>
+
+<div class="grid grid-2 mb">
+  <div class="card">
+    <div class="card-head"><h2>Average skill levels</h2>
+      <span class="small muted">Across assessed students</span></div>
+    {% for name, value in avg_skills.items() %}{{ skill_bar(name, value) }}{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Industry skill demand</h2>
+      <span class="small muted">Times required across postings</span></div>
+    <ul class="list">
+      {% for name, count in demand %}
+      <li>
+        <div class="item-head">
+          <span class="item-title">{{ name }}</span>
+          <span class="badge badge-brand">{{ count }} posting(s)</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width: {{ (count / demand[0][1] * 100)|round }}%"></div></div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h2>Student progress</h2>
+    <span class="small muted">Sorted by placement readiness</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Branch</th><th>Year</th><th>Readiness</th>
+          <th>Applications</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ s.profile.name }}</td>
+          <td>{{ s.profile.branch }}</td>
+          <td>{{ s.profile.year }}</td>
+          <td>
+            <div class="meter" style="min-width:100px"><div style="width: {{ s.readiness }}%"></div></div>
+            <span class="small muted">{{ s.readiness }}%</span>
+          </td>
+          <td>{{ s.applications }}</td>
+          <td>
+            {% if s.placed %}<span class="badge badge-ok">Placed</span>
+            {% elif s.shortlisted %}<span class="badge badge-brand">Shortlisted</span>
+            {% elif s.assessed %}<span class="badge badge-muted">Assessed</span>
+            {% else %}<span class="badge badge-warn">Not assessed</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h3>Lowest institutional skill areas</h3></div>
+  <p class="small muted">Priority areas for Faculty Development Programmes and targeted
+     training partnerships:</p>
+  <div>
+    {% for name, value in gap_skills %}
+      <span class="pill pill-need">{{ name }} &middot; {{ value }}%</span>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

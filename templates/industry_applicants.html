@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, match_pill, skill_bar %}
+{% block title %}Applicants &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Applicants</h1>
+    <p class="muted">Candidates shortlisted by skill compatibility across your postings.</p>
+  </div>
+  <span class="badge badge-brand">{{ rows|length }} applicant(s)</span>
+</div>
+
+{% if rows %}
+<div class="grid grid-2">
+  {% for r in rows %}
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="item-title">{{ r.candidate.get('name', r.app.username) }}</div>
+        <div class="item-meta">{{ r.candidate.get('branch', '-') }} &middot;
+          {{ r.candidate.get('year', '-') }} &middot; {{ r.candidate.get('institution', '-') }}</div>
+      </div>
+      {{ status_badge(r.app.status) }}
+    </div>
+
+    <div class="item-meta mb">Applied to <b>{{ r.opp.title }}</b> on {{ r.app.applied_on }}
+      &middot; {{ match_pill(r.app.match) }}</div>
+
+    <div>
+      {% for s in r.opp.skills %}
+        <span class="pill {{ 'pill-have' if r.skills.get(s, 0) >= 60 else 'pill-need' }}">
+          {{ s }} &middot; {{ r.skills.get(s, 0) }}%</span>
+      {% endfor %}
+    </div>
+
+    <form method="post" action="{{ url_for('industry_status', aid=r.app.id) }}" class="toolbar mt">
+      <div class="field grow">
+        <label for="status-{{ r.app.id }}">Update status</label>
+        <select id="status-{{ r.app.id }}" name="status">
+          {% for s in flow %}
+          <option value="{{ s }}" {{ 'selected' if s == r.app.status else '' }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-sm">Update</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p>No applicants yet.</p>
+  <a class="btn" href="{{ url_for('industry_post') }}">Post an opportunity</a>
+</div>
+{% endif %}
+{% endblock %}

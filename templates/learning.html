@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Learning Programmes &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Industry learning programmes</h1>
+    <p class="muted">Training programmes, certification courses, workshops and mentorship
+       published by industry partners
+       {% if user.role == 'student' %}, ordered by how much of your skill gap they close{% endif %}.</p>
+  </div>
+  <span class="badge badge-brand">{{ programs|length }} programmes</span>
+</div>
+
+<div class="grid grid-3">
+  {% for p in programs %}
+  <article class="card opp-card">
+    <div>
+      <div class="opp-title">{{ p.title }}</div>
+      <div class="opp-org">{{ p.provider }}</div>
+    </div>
+    <div>
+      <span class="badge badge-accent">{{ p.type }}</span>
+      <span class="badge badge-muted">{{ p.duration }}</span>
+    </div>
+    <p class="small muted">{{ p.description }}</p>
+    <div>
+      {% for s in p.skills %}
+        {% if user.role == 'student' %}
+          <span class="pill {{ 'pill-need' if s in p.closes else 'pill-have' }}">{{ s }}</span>
+        {% else %}
+          <span class="pill">{{ s }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <div class="opp-foot">
+      <span class="small muted">{{ p.mode }}</span>
+      {% if user.role == 'student' and p.closes %}
+        <span class="badge badge-warn">Closes {{ p.closes|length }} gap(s)</span>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h3>Integrations</h3></div>
+  <p class="small muted" style="margin:0">Programme completions sync back into the student
+     digital portfolio as verified certifications, and feed institutional analytics on skill
+     development. External learning platforms and certification providers connect through the
+     same programme records.</p>
+</div>
+{% endblock %}

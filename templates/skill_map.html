@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skill_bar, match_pill %}
+{% block title %}Skill Map &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Skill profile &amp; mapping</h1>
+    <p class="muted">
+      {% if portfolio.assessment_done %}Assessed on {{ portfolio.assessed_on }}.{% endif %}
+      Strengths, gaps, matching career roles and the programmes that close the gaps.
+    </p>
+  </div>
+  <a class="btn btn-ghost" href="{{ url_for('assessment') }}">Retake assessment</a>
+</div>
+
+{% if not skills %}
+<div class="empty">
+  <p>No skill profile yet.</p>
+  <a class="btn" href="{{ url_for('assessment') }}">Take the skill assessment</a>
+</div>
+{% else %}
+
+<div class="grid grid-3 mb">
+  <div class="stat"><div class="stat-label">Placement readiness</div>
+    <div class="stat-value">{{ readiness }}%</div>
+    <div class="meter"><div style="width: {{ readiness }}%"></div></div></div>
+  <div class="stat"><div class="stat-label">Strengths</div>
+    <div class="stat-value">{{ strengths|length }}</div>
+    <div class="stat-foot">{% for s in strengths %}<span class="pill pill-have">{{ s }}</span>{% else %}None yet{% endfor %}</div></div>
+  <div class="stat"><div class="stat-label">Skill gaps</div>
+    <div class="stat-value">{{ gaps|length }}</div>
+    <div class="stat-foot">{% for s in gaps %}<span class="pill pill-need">{{ s }}</span>{% else %}No major gaps{% endfor %}</div></div>
+</div>
+
+<div class="grid grid-2 mb">
+  <div class="card">
+    <div class="card-head"><h2>Technical skills</h2></div>
+    {% for s in technical %}{{ skill_bar(s, skills.get(s, 0)) }}{% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Soft skills</h2></div>
+    {% for s in soft %}{{ skill_bar(s, skills.get(s, 0)) }}{% endfor %}
+  </div>
+</div>
+
+<div class="card mb">
+  <div class="card-head"><h2>Recommended career roles</h2>
+    <span class="small muted">Ranked by compatibility with your profile</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Role</th><th>Industry</th><th>Required skills</th>
+        <th>Market demand</th><th>Fit</th></tr></thead>
+      <tbody>
+        {% for r in roles %}
+        <tr>
+          <td><b>{{ r.title }}</b></td>
+          <td>{{ r.industry }}</td>
+          <td>{% for s in r.skills %}
+              <span class="pill {{ 'pill-have' if skills.get(s, 0) >= 60 else 'pill-need' }}">{{ s }}</span>
+              {% endfor %}</td>
+          <td><span class="badge {{ 'badge-ok' if r.demand == 'High' else 'badge-warn' }}">{{ r.demand }}</span></td>
+          <td>{{ match_pill(r.match) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-head"><h2>Matching opportunities</h2>
+      <a class="small" href="{{ url_for('opportunities') }}">Browse all</a></div>
+    <ul class="list">
+      {% for o in matches %}
+      <li>
+        <div class="item-head">
+          <span class="item-title">
+            <a href="{{ url_for('opportunity_detail', oid=o.id) }}">{{ o.title }}</a></span>
+          {{ match_pill(o.match) }}
+        </div>
+        <div class="item-meta">{{ o.org }} &middot; {{ o.type }} &middot; {{ o.location }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Recommended learning</h2>
+      <a class="small" href="{{ url_for('learning') }}">All programmes</a></div>
+    <ul class="list">
+      {% for p in programs %}
+      <li>
+        <div class="item-title">{{ p.title }}</div>
+        <div class="item-meta">{{ p.provider }} &middot; {{ p.type }} &middot; {{ p.mode }}
+          &middot; {{ p.duration }}</div>
+        <div style="margin-top:.35rem">
+          {% for s in p.closes %}<span class="pill pill-need">closes {{ s }}</span>
+          {% else %}<span class="pill">skill reinforcement</span>{% endfor %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

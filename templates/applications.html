@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, match_pill %}
+{% block title %}My Applications &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Application tracking</h1>
+    <p class="muted">Every internship, project and job application in one place, with its
+       current recruitment stage.</p>
+  </div>
+  <a class="btn btn-ghost" href="{{ url_for('opportunities') }}">Find more opportunities</a>
+</div>
+
+{% if items %}
+<div class="grid grid-4 mb">
+  {% for status in flow %}
+  <div class="stat">
+    <div class="stat-label">{{ status }}</div>
+    <div class="stat-value">
+      {{ items|selectattr('app.status', 'equalto', status)|list|length }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-2">
+  {% for it in items %}
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="item-title">
+          <a href="{{ url_for('opportunity_detail', oid=it.opp.id) }}">{{ it.opp.title }}</a></div>
+        <div class="item-meta">{{ it.opp.org }} &middot; {{ it.opp.type }} &middot; {{ it.opp.location }}</div>
+      </div>
+      {{ status_badge(it.app.status) }}
+    </div>
+    <div class="item-meta">Applied on {{ it.app.applied_on }}
+      {% if user.role == 'student' %}&middot; {{ it.app.match }}% skill match{% endif %}</div>
+    <ul class="timeline">
+      {% for step in it.app.timeline %}<li>{{ step }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p>No applications yet.</p>
+  <a class="btn" href="{{ url_for('opportunities') }}">Browse opportunities</a>
+</div>
+{% endif %}
+{% endblock %}

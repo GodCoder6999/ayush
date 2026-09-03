@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Collaboration &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Industry&ndash;academia collaboration</h1>
+    <p class="muted">Mentorship programmes, workshops, guest lectures, innovation challenges
+       and live industry projects open to faculty and students.</p>
+  </div>
+  <span class="badge badge-brand">{{ collaborations|length }} open initiatives</span>
+</div>
+
+<div class="grid grid-2">
+  {% for c in collaborations %}
+  <article class="card">
+    <div class="card-head">
+      <div>
+        <div class="item-title">{{ c.title }}</div>
+        <div class="item-meta">{{ c.org }}</div>
+      </div>
+      <span class="badge badge-accent">{{ c.type }}</span>
+    </div>
+    <p class="small muted">{{ c.description }}</p>
+    <div class="opp-foot">
+      <span class="small muted">Capacity: {{ c.slots }}</span>
+      <span class="badge badge-ok">Open</span>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}
