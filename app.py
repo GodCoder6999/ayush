@@ -1,11 +1,17 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
-app.secret_key = "ayush_portal_secret_key"
+app.secret_key = "ayush_portal_super_secret_key"
 
-# In-memory stores for prototype demonstration
-# 1. Assessment Question Bank (Technical & Soft Skills)
+# Simulated User Accounts for Each Role
+MOCK_USERS = {
+    "student@ayush.in": {"password": "123", "role": "student", "name": "Arjun Sharma"},
+    "faculty@aiia.in": {"password": "123", "role": "faculty", "name": "Dr. Ramesh Varma"},
+    "recruiter@dabur.com": {"password": "123", "role": "industry", "name": "Dabur HR Team"},
+    "admin@aiia.in": {"password": "123", "role": "institution", "name": "Dean Academic Affairs"}
+}
+
 ASSESSMENT_QUESTIONS = [
     {
         "id": "q1",
@@ -32,7 +38,7 @@ ASSESSMENT_QUESTIONS = [
     {
         "id": "q3",
         "category": "Technical",
-        "question": "Clinical Trials & GCP (Good Clinical Practice) Protocol:",
+        "question": "Clinical Trials & GCP Protocol:",
         "skill": "Clinical Research & GCP",
         "options": [
             {"label": "Never exposed", "weight": 0},
@@ -43,7 +49,7 @@ ASSESSMENT_QUESTIONS = [
     {
         "id": "q4",
         "category": "Soft Skills",
-        "question": "Cross-Functional Collaboration & Technical Reporting:",
+        "question": "Cross-Functional Collaboration & Reporting:",
         "skill": "Documentation & Collaboration",
         "options": [
             {"label": "Need guidance", "weight": 30},
@@ -52,76 +58,103 @@ ASSESSMENT_QUESTIONS = [
     }
 ]
 
-# 2. Industry Listings (Internships & Placements)
 OPPORTUNITIES = [
     {
         "id": 1,
         "title": "Ayurvedic Formulation Intern",
         "company": "Himalaya Herbal Healthcare",
         "category": "Internship",
-        "audience": "Student",
+        "audience": "student",
         "required_skills": ["Phytochemistry", "Quality Control & GMP"],
         "stipend": "₹18,000/mo",
-        "location": "Bengaluru",
-        "learning_prereq": "Herbal Extraction Masterclass"
+        "location": "Bengaluru"
     },
     {
         "id": 2,
         "title": "Clinical Research Associate",
         "company": "Dabur Research Foundation",
         "category": "Placement",
-        "audience": "Student",
+        "audience": "student",
         "required_skills": ["Clinical Research & GCP", "Documentation & Collaboration"],
         "stipend": "₹6.2 LPA",
-        "location": "New Delhi",
-        "learning_prereq": "Ayush Clinical Trial Management (CTM)"
+        "location": "New Delhi"
     },
     {
         "id": 3,
         "title": "Faculty Industrial Immersion & FDP",
         "company": "Patanjali Research Institute",
         "category": "Faculty FDP",
-        "audience": "Academician",
+        "audience": "faculty",
         "required_skills": ["Phytochemistry", "Quality Control & GMP"],
         "stipend": "₹50,000 Research Grant",
-        "location": "Haridwar",
-        "learning_prereq": "Advanced Phytochemical Analytics Workshop"
+        "location": "Haridwar"
     },
     {
         "id": 4,
         "title": "Consultancy: Ayush Formulation Scale-up",
         "company": "Baidyanath R&D",
         "category": "Consultancy",
-        "audience": "Academician",
+        "audience": "faculty",
         "required_skills": ["Quality Control & GMP"],
         "stipend": "Retainer Basis",
-        "location": "Kolkata",
-        "learning_prereq": "Industrial Batch Pilot Scaling"
+        "location": "Kolkata"
     }
 ]
 
-# 3. Learning & Upskilling Programs
 LEARNING_PROGRAMS = [
     {"name": "Herbal Extraction Masterclass", "provider": "All India Institute of Ayurveda", "skill": "Phytochemistry", "duration": "4 Weeks"},
     {"name": "Ayush Clinical Trial Management (CTM)", "provider": "Ministry of Ayush e-Learning", "skill": "Clinical Research & GCP", "duration": "6 Weeks"},
     {"name": "Standardization of ASU Drugs & GMP", "provider": "Pharmacopoeia Commission", "skill": "Quality Control & GMP", "duration": "3 Weeks"}
 ]
 
-# Persistent session state for applications & submissions
 APPLICATIONS = []
 STUDENT_PORTFOLIO = {
     "name": "Arjun Sharma",
     "institution": "All India Institute of Ayurveda (AIIA)",
     "verified_skills": ["Phytochemistry"],
-    "certifications": ["Ayush Good Laboratory Practices (GLP) 2025"],
-    "projects": ["Comparative HPTLC profiling of Ashwagandha extracts"]
+    "certifications": ["Ayush Good Laboratory Practices (GLP) 2025"]
 }
 
+# --- AUTHENTICATION ROUTES ---
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        user = MOCK_USERS.get(email)
+        if user and user["password"] == password:
+            session["user"] = {
+                "email": email,
+                "role": user["role"],
+                "name": user["name"]
+            }
+            return redirect(url_for("dashboard"))
+        else:
+            error = "Invalid Email or Password. Please select one of the pre-filled demo roles below."
+
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+# --- DASHBOARD ROUTE ---
+
 @app.route("/")
-def index():
-    tab = request.args.get("tab", "student")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    current_user = session["user"]
+    tab = current_user["role"]
+
     return render_template(
         "index.html",
+        user=current_user,
         tab=tab,
         questions=ASSESSMENT_QUESTIONS,
         opportunities=OPPORTUNITIES,
@@ -134,9 +167,11 @@ def index():
 
 @app.route("/assess", methods=["POST"])
 def assess_skills():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
     verified = []
     gaps = []
-
     for q in ASSESSMENT_QUESTIONS:
         score = int(request.form.get(q["id"], 0))
         if score >= 60:
@@ -146,7 +181,6 @@ def assess_skills():
 
     STUDENT_PORTFOLIO["verified_skills"] = verified
 
-    # Match opportunities against evaluated skill set
     matched_opportunities = []
     for opp in OPPORTUNITIES:
         req = set(opp["required_skills"])
@@ -165,6 +199,7 @@ def assess_skills():
 
     return render_template(
         "index.html",
+        user=session["user"],
         tab="student",
         assessment_done=True,
         verified_skills=verified,
@@ -173,11 +208,16 @@ def assess_skills():
         questions=ASSESSMENT_QUESTIONS,
         courses=LEARNING_PROGRAMS,
         portfolio=STUDENT_PORTFOLIO,
-        applications=APPLICATIONS
+        applications=APPLICATIONS,
+        total_applied=len(APPLICATIONS),
+        total_openings=len(OPPORTUNITIES)
     )
 
 @app.route("/apply", methods=["POST"])
 def apply_opportunity():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
     opp_id = int(request.form.get("opp_id"))
     opp = next((o for o in OPPORTUNITIES if o["id"] == opp_id), None)
     if opp and not any(a["id"] == opp_id for a in APPLICATIONS):
@@ -188,10 +228,13 @@ def apply_opportunity():
             "category": opp["category"],
             "status": "Shortlisted for Review"
         })
-    return redirect(url_for("index", tab=request.form.get("tab", "student")))
+    return redirect(url_for("dashboard"))
 
 @app.route("/post-job", methods=["POST"])
 def post_job():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
     new_id = len(OPPORTUNITIES) + 1
     OPPORTUNITIES.append({
         "id": new_id,
@@ -201,10 +244,10 @@ def post_job():
         "audience": request.form.get("audience"),
         "required_skills": [s.strip() for s in request.form.get("skills").split(",") if s.strip()],
         "stipend": request.form.get("stipend"),
-        "location": request.form.get("location"),
-        "learning_prereq": "Self-study pre-requisites"
+        "location": request.form.get("location")
     })
-    return redirect(url_for("index", tab="industry"))
+    return redirect(url_for("dashboard"))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)

@@ -24,10 +24,31 @@
         header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 1.5rem 2rem;
+            padding: 1.25rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .user-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            color: #fff;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 0.45rem 0.9rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(0, 0, 0, 0.45);
         }
 
         .nav-tabs {
@@ -98,6 +119,15 @@
         
         .metric-card { text-align: center; padding: 1.5rem; }
         .metric-number { font-size: 2.2rem; font-weight: 700; color: var(--primary); }
+
+        .score-bar {
+            height: 7px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.4rem 0 0.8rem 0;
+        }
+        .score-fill { height: 100%; background: var(--primary); }
     </style>
 </head>
 <body>
@@ -106,6 +136,10 @@
     <div>
         <h2>Academia-Industry Collaboration Portal</h2>
         <span style="font-size: 0.85rem; opacity: 0.9;">Ministry of Ayush & AIIA Platform for Skill Mapping, Internships & Placements</span>
+    </div>
+    <div class="user-meta">
+        <span>Logged in as: <strong>{{ user.name }}</strong> ({{ user.role.title() }})</span>
+        <a href="/logout" class="logout-btn">Sign Out</a>
     </div>
 </header>
 
@@ -147,11 +181,14 @@
             <!-- Opportunities & Recommendations -->
             <h3>Matched Internships & Entry Placements</h3>
             {% if matched_opportunities %}
-                {% for opp in matched_opportunities if opp.audience == 'Student' %}
+                {% for opp in matched_opportunities if opp.audience == 'student' %}
                 <div class="card" style="border-left: 5px solid var(--primary);">
-                    <div style="display: flex; justify-content: space-between;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h4>{{ opp.title }} <small style="color: #666;">@ {{ opp.company }}</small></h4>
                         <strong>{{ opp.match_score }}% Match</strong>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: {{ opp.match_score }}%;"></div>
                     </div>
                     <p style="margin: 0.3rem 0;">Type: <strong>{{ opp.category }}</strong> | Compensation: <strong>{{ opp.stipend }}</strong> | Location: <strong>{{ opp.location }}</strong></p>
                     
@@ -164,7 +201,7 @@
                         {% endfor %}
                     </div>
                     <div style="margin: 0.5rem 0;">
-                        <span>Skill Gaps:</span>
+                        <span>Skill Gaps to Bridge:</span>
                         {% for s in opp.missing_skills %}
                             <span class="badge badge-gap">{{ s }}</span>
                         {% else %}
@@ -240,7 +277,7 @@
         <p style="margin-bottom: 1.5rem; color: #555;">Opportunities for academicians to gain hands-on industrial R&D exposure, undertake consultancy projects, and align curricula with standard production practices.</p>
 
         <div class="grid-cards">
-            {% for opp in opportunities if opp.audience == 'Academician' %}
+            {% for opp in opportunities if opp.audience == 'faculty' %}
             <div class="card" style="border-top: 4px solid var(--accent);">
                 <h4>{{ opp.title }}</h4>
                 <p style="color: #666; margin-bottom: 0.5rem;">Partner: <strong>{{ opp.company }}</strong></p>
@@ -288,8 +325,8 @@
 
                     <label>Target Audience</label>
                     <select class="form-control" name="audience">
-                        <option value="Student">Student Candidates</option>
-                        <option value="Academician">Faculty & Researchers</option>
+                        <option value="student">Student Candidates</option>
+                        <option value="faculty">Faculty & Researchers</option>
                     </select>
 
                     <label>Required Competencies (Comma-separated)</label>
@@ -312,7 +349,7 @@
                 {% for opp in opportunities %}
                 <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
                     <strong>{{ opp.title }}</strong>
-                    <div style="font-size: 0.8rem; color: #666;">{{ opp.company }} ({{ opp.category }} - {{ opp.audience }})</div>
+                    <div style="font-size: 0.8rem; color: #666;">{{ opp.company }} ({{ opp.category }} - {{ opp.audience.title() }})</div>
                 </div>
                 {% endfor %}
             </div>
