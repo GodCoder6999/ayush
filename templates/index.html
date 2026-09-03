@@ -107,16 +107,13 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>Close your gaps</h3>
+      <div class="card-head"><h3>Courses you can join</h3>
         <a class="small" href="{{ url_for('learning') }}">All programmes</a></div>
       <ul class="list">
         {% for p in programs %}
         <li>
           <div class="item-title">{{ p.title }}</div>
           <div class="item-meta">{{ p.provider }} &middot; {{ p.type }} &middot; {{ p.duration }}</div>
-          <div style="margin-top:.35rem">
-            {% for s in p.closes %}<span class="pill pill-need">{{ s }}</span>{% endfor %}
-          </div>
         </li>
         {% endfor %}
       </ul>
@@ -142,13 +139,10 @@
   <p>{{ user.designation }} &middot; {{ user.department }} &middot; {{ user.institution }}</p>
 </section>
 
-<div class="grid grid-4 mb">
+<div class="grid grid-3 mb">
   <div class="stat"><div class="stat-label">Faculty openings</div>
     <div class="stat-value">{{ matches|length }}+</div>
     <div class="stat-foot">Internships, FDPs, consultancy</div></div>
-  <div class="stat"><div class="stat-label">My applications</div>
-    <div class="stat-value">{{ applications|length }}</div>
-    <div class="stat-foot"><a href="{{ url_for('applications') }}">Track status</a></div></div>
   <div class="stat"><div class="stat-label">Collaborations</div>
     <div class="stat-value">{{ collaborations|length }}+</div>
     <div class="stat-foot">Lectures, research, mentorship</div></div>
@@ -185,7 +179,8 @@
     <ul class="list">
       {% for c in collaborations %}
       <li>
-        <div class="item-title">{{ c.title }}</div>
+        <div class="item-title">
+          <a href="{{ url_for('collaboration_detail', cid=c.id) }}">{{ c.title }}</a></div>
         <div class="item-meta">{{ c.org }} &middot; {{ c.type }}</div>
         <div class="small muted">{{ c.slots }}</div>
       </li>
@@ -292,7 +287,7 @@
     <div class="table-wrap">
       <table>
         <thead><tr><th>Student</th><th>Branch</th><th>Readiness</th>
-          <th>Applications</th><th>Status</th></tr></thead>
+          <th>Shortlisted In</th><th>Status</th></tr></thead>
         <tbody>
           {% for s in students %}
           <tr>
@@ -302,7 +297,10 @@
               <div class="meter" style="min-width:90px"><div style="width: {{ s.readiness }}%"></div></div>
               <span class="small muted">{{ s.readiness }}%</span>
             </td>
-            <td>{{ s.applications }}</td>
+            <td>
+              {% for title in s.shortlisted_titles %}<span class="pill pill-have">{{ title }}</span>
+              {% else %}<span class="small muted">&mdash;</span>{% endfor %}
+            </td>
             <td>
               {% if s.placed %}<span class="badge badge-ok">Placed</span>
               {% elif s.shortlisted %}<span class="badge badge-brand">Shortlisted</span>

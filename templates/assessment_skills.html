@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Your Skills &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Step 1: Tell us your current skills</h1>
+    <p class="muted">Select every skill you already have, even a little. The short test after
+       this measures how strong each one actually is.</p>
+  </div>
+  <span class="badge badge-brand">Required before the test</span>
+</div>
+
+<form method="post">
+  <div class="card mb">
+    <div class="card-head"><h3>Technical skills</h3></div>
+    <div class="options">
+      {% for s in all_skills[:5] %}
+      <label class="option">
+        <input type="checkbox" name="skills" value="{{ s }}" {{ 'checked' if s in chosen else '' }}>
+        <span>{{ s }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-head"><h3>Soft skills</h3></div>
+    <div class="options">
+      {% for s in all_skills[5:] %}
+      <label class="option">
+        <input type="checkbox" name="skills" value="{{ s }}" {{ 'checked' if s in chosen else '' }}>
+        <span>{{ s }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button type="submit" class="btn">Continue to skill test</button>
+    <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -50,6 +50,9 @@
           </form>
         {% endif %}
       </div>
+    {% elif user.role == 'institution' %}
+      <p class="small muted mt" style="margin-bottom:0">View only &mdash; institutions monitor
+         opportunities but do not apply.</p>
     {% endif %}
   </div>
 

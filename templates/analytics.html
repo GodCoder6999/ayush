@@ -59,7 +59,7 @@
     <table>
       <thead>
         <tr><th>Student</th><th>Branch</th><th>Year</th><th>Readiness</th>
-          <th>Applications</th><th>Status</th></tr>
+          <th>Shortlisted In</th><th>Status</th></tr>
       </thead>
       <tbody>
         {% for s in students %}
@@ -71,7 +71,10 @@
             <div class="meter" style="min-width:100px"><div style="width: {{ s.readiness }}%"></div></div>
             <span class="small muted">{{ s.readiness }}%</span>
           </td>
-          <td>{{ s.applications }}</td>
+          <td>
+            {% for title in s.shortlisted_titles %}<span class="pill pill-have">{{ title }}</span>
+            {% else %}<span class="small muted">&mdash;</span>{% endfor %}
+          </td>
           <td>
             {% if s.placed %}<span class="badge badge-ok">Placed</span>
             {% elif s.shortlisted %}<span class="badge badge-brand">Shortlisted</span>

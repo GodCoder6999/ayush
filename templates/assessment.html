@@ -4,12 +4,17 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <h1>Skill assessment</h1>
+    <h1>Step 2: Skill test</h1>
     <p class="muted">Questionnaire shared by industry partners. Your answers generate a skill
        profile that drives role, opportunity and learning recommendations.</p>
   </div>
   <span class="badge badge-brand">{{ questions|length }} questions &middot; ~5 minutes</span>
 </div>
+
+{% if declared_skills %}
+<p class="small muted mb">You told us you already have: {{ declared_skills|join(', ') }}.
+   <a href="{{ url_for('assessment_skills') }}">Edit this list</a></p>
+{% endif %}
 
 <form method="post">
   {% for q in questions %}

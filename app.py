@@ -313,23 +313,23 @@ LEARNING_PROGRAMS = [
 ]
 
 COLLABORATIONS = [
-    {"title": "Guest Lecture Series: Engineering at Scale", "org": "TechNova Solutions",
+    {"id": 1, "title": "Guest Lecture Series: Engineering at Scale", "org": "TechNova Solutions",
      "type": "Guest Lecture", "slots": "4 sessions per semester",
      "description": "Industry architects deliver lectures mapped to the Software Engineering "
                     "syllabus."},
-    {"title": "Innovation Challenge: Sustainable Cities", "org": "UrbanGrid Systems",
+    {"id": 2, "title": "Innovation Challenge: Sustainable Cities", "org": "UrbanGrid Systems",
      "type": "Innovation Challenge", "slots": "Team entries open",
      "description": "Joint student-faculty teams solve live civic problems; winning ideas are "
                     "funded for a pilot."},
-    {"title": "Collaborative Research: Federated Learning for Health", "org": "Vedanta AI Labs",
+    {"id": 3, "title": "Collaborative Research: Federated Learning for Health", "org": "Vedanta AI Labs",
      "type": "Research Project", "slots": "2 faculty partners",
      "description": "Two-year joint research with shared IP, industry compute credits and "
                     "student research assistants."},
-    {"title": "Industry Mentorship Pool", "org": "TechNova Solutions",
+    {"id": 4, "title": "Industry Mentorship Pool", "org": "TechNova Solutions",
      "type": "Mentorship", "slots": "25 mentors available",
      "description": "Engineers mentor final-year projects and review student portfolios each "
                     "month."},
-    {"title": "Workshop: Secure Coding Practices", "org": "TechNova Solutions",
+    {"id": 5, "title": "Workshop: Secure Coding Practices", "org": "TechNova Solutions",
      "type": "Workshop", "slots": "60 seats",
      "description": "Two-day hands-on workshop for students and faculty on secure development "
                     "and code review."},
@@ -352,6 +352,7 @@ APPLICATIONS = [
 STUDENT_PORTFOLIO = {
     "student": {
         "skills": {},
+        "declared_skills": [],
         "assessment_done": False,
         "certifications": [
             {"name": "Python for Industry Readiness", "issuer": "TechNova Solutions",
@@ -379,6 +380,7 @@ STUDENT_PORTFOLIO = {
         "skills": {"Python": 88, "Data Analysis": 92, "Web Development": 70,
                    "Machine Learning": 65, "Cloud & DevOps": 55,
                    "Communication": 85, "Teamwork": 80, "Problem Solving": 82},
+        "declared_skills": list(SKILLS),
         "assessment_done": True, "assessed_on": "2026-08-05",
         "certifications": [{"name": "Applied Data Analytics Bootcamp",
                             "issuer": "Vedanta AI Labs", "year": "2026", "verified": True}],
@@ -396,6 +398,7 @@ STUDENT_PORTFOLIO = {
         "skills": {"Python": 45, "Data Analysis": 38, "Web Development": 52,
                    "Machine Learning": 25, "Cloud & DevOps": 30,
                    "Communication": 60, "Teamwork": 72, "Problem Solving": 55},
+        "declared_skills": list(SKILLS),
         "assessment_done": True, "assessed_on": "2026-08-18",
         "certifications": [],
         "projects": [{"name": "IoT Smart Meter", "tech": "Arduino, C",
@@ -441,8 +444,8 @@ def login_required(*roles):
 
 def portfolio_for(username):
     return STUDENT_PORTFOLIO.setdefault(username, {
-        "skills": {}, "assessment_done": False, "certifications": [],
-        "projects": [], "internships": [], "achievements": [],
+        "skills": {}, "declared_skills": [], "assessment_done": False,
+        "certifications": [], "projects": [], "internships": [], "achievements": [],
     })
 
 
@@ -502,6 +505,16 @@ def placement_readiness(skills):
     if not skills:
         return 0
     return round(sum(skills.values()) / len(skills))
+
+
+def skill_demand():
+    """How often each skill is required across live postings, ranked
+    highest first - i.e. which skills the market is currently asking for."""
+    demand = {}
+    for o in OPPORTUNITIES:
+        for s in o["skills"]:
+            demand[s] = demand.get(s, 0) + 1
+    return sorted(demand.items(), key=lambda kv: kv[1], reverse=True)
 
 
 def all_students():
@@ -575,7 +588,6 @@ def dashboard():
         data.update({
             "matches": recommended_opportunities(user, 3),
             "collaborations": COLLABORATIONS[:3],
-            "applications": applications_for(user["username"]),
         })
 
     elif user["role"] == "industry":
@@ -601,11 +613,34 @@ def dashboard():
 # ---------------------------------------------------------------------------
 
 
+@app.route("/assessment/skills", methods=["GET", "POST"])
+@login_required("student")
+def assessment_skills():
+    user = current_user()
+    pf = portfolio_for(user["username"])
+
+    if request.method == "POST":
+        chosen = request.form.getlist("skills")
+        if not chosen:
+            flash("Select at least one skill you currently have to continue.", "error")
+            return render_template("assessment_skills.html", all_skills=SKILLS, chosen=chosen)
+        pf["declared_skills"] = chosen
+        flash("Skills saved. Now take the short test to measure them.", "success")
+        return redirect(url_for("assessment"))
+
+    return render_template("assessment_skills.html", all_skills=SKILLS,
+                           chosen=pf["declared_skills"])
+
+
 @app.route("/assessment", methods=["GET", "POST"])
 @login_required("student")
 def assessment():
     user = current_user()
     pf = portfolio_for(user["username"])
+
+    if not pf["declared_skills"]:
+        flash("First tell us the skills you currently have, then take the test.", "error")
+        return redirect(url_for("assessment_skills"))
 
     if request.method == "POST":
         totals, counts, unanswered = {}, {}, 0
@@ -621,7 +656,8 @@ def assessment():
         if unanswered:
             flash("Please answer all %d questions - %d still unanswered."
                   % (len(ASSESSMENT_QUESTIONS), unanswered), "error")
-            return render_template("assessment.html", questions=ASSESSMENT_QUESTIONS)
+            return render_template("assessment.html", questions=ASSESSMENT_QUESTIONS,
+                                   declared_skills=pf["declared_skills"])
 
         pf["skills"] = {s: round(totals[s] / counts[s] / 4 * 100) for s in totals}
         pf["assessment_done"] = True
@@ -629,7 +665,8 @@ def assessment():
         flash("Assessment submitted. Your skill profile has been generated.", "success")
         return redirect(url_for("skill_map"))
 
-    return render_template("assessment.html", questions=ASSESSMENT_QUESTIONS)
+    return render_template("assessment.html", questions=ASSESSMENT_QUESTIONS,
+                           declared_skills=pf["declared_skills"])
 
 
 @app.route("/skill-map")
@@ -743,10 +780,44 @@ def learning():
     return render_template("learning.html", programs=recommended_programs(skills), skills=skills)
 
 
+@app.route("/learning/join/<int:pid>", methods=["POST"])
+@login_required("student")
+def learning_join(pid):
+    prog = next((p for p in LEARNING_PROGRAMS if p["id"] == pid), None)
+    if not prog:
+        flash("Programme not found.", "error")
+    else:
+        flash("You're in! \"%s\" will show up with your other learning next steps."
+              % prog["title"], "success")
+    return redirect(url_for("learning"))
+
+
 @app.route("/collaboration")
 @login_required()
 def collaboration():
     return render_template("collaboration.html", collaborations=COLLABORATIONS)
+
+
+@app.route("/collaboration/<int:cid>")
+@login_required()
+def collaboration_detail(cid):
+    collab = next((c for c in COLLABORATIONS if c["id"] == cid), None)
+    if not collab:
+        flash("Collaboration not found.", "error")
+        return redirect(url_for("collaboration"))
+    return render_template("collaboration_detail.html", c=collab)
+
+
+@app.route("/collaboration/interest/<int:cid>", methods=["POST"])
+@login_required("student", "academician", "industry")
+def collaboration_interest(cid):
+    collab = next((c for c in COLLABORATIONS if c["id"] == cid), None)
+    if not collab:
+        flash("Collaboration not found.", "error")
+    else:
+        flash("Interest sent for \"%s\". %s will follow up with next steps."
+              % (collab["title"], collab["org"]), "success")
+    return redirect(url_for("collaboration_detail", cid=cid))
 
 
 @app.route("/portfolio")
@@ -825,7 +896,7 @@ def industry_post():
             flash("Opportunity published. Matched candidates can see it immediately.",
                   "success")
             return redirect(url_for("industry_applicants"))
-    return render_template("industry_post.html", all_skills=SKILLS)
+    return render_template("industry_post.html", all_skills=TECHNICAL_SKILLS)
 
 
 @app.route("/industry/applicants")
@@ -875,20 +946,21 @@ def institution_analytics():
         scored = [profiles[u].get(skill, 0) for u in assessed]
         avg_skills[skill] = round(sum(scored) / len(scored)) if scored else 0
 
-    demand = {}
-    for o in OPPORTUNITIES:
-        for s in o["skills"]:
-            demand[s] = demand.get(s, 0) + 1
-    demand_ranked = sorted(demand.items(), key=lambda kv: kv[1], reverse=True)
+    demand_ranked = skill_demand()
 
     rows = []
     for u in students:
         apps = applications_for(u)
+        shortlisted_titles = [
+            opportunity_by_id(a["opportunity_id"])["title"] for a in apps
+            if a["status"] in ("Shortlisted", "Selected")
+            and opportunity_by_id(a["opportunity_id"])
+        ]
         rows.append({
             "username": u, "profile": MOCK_USERS[u],
             "readiness": placement_readiness(profiles[u]),
             "assessed": portfolio_for(u)["assessment_done"],
-            "applications": len(apps),
+            "shortlisted_titles": shortlisted_titles,
             "placed": any(a["status"] == "Selected" for a in apps),
             "shortlisted": any(a["status"] == "Shortlisted" for a in apps),
         })
@@ -915,6 +987,14 @@ def institution_analytics():
 @login_required("institution")
 def analytics():
     return render_template("analytics.html", **institution_analytics())
+
+
+@app.route("/trending-skills")
+@login_required("institution")
+def trending_skills():
+    demand = skill_demand()
+    top = demand[0][1] if demand else 1
+    return render_template("trending_skills.html", demand=demand, top=top)
 
 
 if __name__ == "__main__":

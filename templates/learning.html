@@ -6,8 +6,7 @@
   <div>
     <h1>Industry learning programmes</h1>
     <p class="muted">Training programmes, certification courses, workshops and mentorship
-       published by industry partners
-       {% if user.role == 'student' %}, ordered by how much of your skill gap they close{% endif %}.</p>
+       published by industry partners.</p>
   </div>
   <span class="badge badge-brand">{{ programs|length }} programmes</span>
 </div>
@@ -25,18 +24,14 @@
     </div>
     <p class="small muted">{{ p.description }}</p>
     <div>
-      {% for s in p.skills %}
-        {% if user.role == 'student' %}
-          <span class="pill {{ 'pill-need' if s in p.closes else 'pill-have' }}">{{ s }}</span>
-        {% else %}
-          <span class="pill">{{ s }}</span>
-        {% endif %}
-      {% endfor %}
+      {% for s in p.skills %}<span class="pill">{{ s }}</span>{% endfor %}
     </div>
     <div class="opp-foot">
       <span class="small muted">{{ p.mode }}</span>
-      {% if user.role == 'student' and p.closes %}
-        <span class="badge badge-warn">Closes {{ p.closes|length }} gap(s)</span>
+      {% if user.role == 'student' %}
+        <form method="post" action="{{ url_for('learning_join', pid=p.id) }}">
+          <button type="submit" class="btn btn-sm">Join course</button>
+        </form>
       {% endif %}
     </div>
   </article>

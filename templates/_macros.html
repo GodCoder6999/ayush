@@ -29,7 +29,7 @@
 {% else %}<span class="badge badge-warn">Pending verification</span>{% endif %}
 {% endmacro %}
 
-{% macro opportunity_card(o, applied_ids=[]) %}
+{% macro opportunity_card(o, applied_ids=[], view_only=False) %}
 <article class="card opp-card">
   <div>
     <div class="opp-title">{{ o.title }}</div>
@@ -42,10 +42,14 @@
   <div>{% for s in o.skills %}<span class="pill">{{ s }}</span>{% endfor %}</div>
   <p class="small muted">{{ o.stipend }} &middot; {{ o.openings }} opening(s)</p>
   <div class="opp-foot">
-    {{ match_pill(o.match) }}
-    <a class="btn btn-sm {{ 'btn-ghost' if o.id in applied_ids else '' }}"
+    {% if view_only %}
+      <span class="small muted">View only</span>
+    {% else %}
+      {{ match_pill(o.match) }}
+    {% endif %}
+    <a class="btn btn-sm {{ 'btn-ghost' if view_only or o.id in applied_ids else '' }}"
        href="{{ url_for('opportunity_detail', oid=o.id) }}">
-      {{ 'Applied' if o.id in applied_ids else 'View & Apply' }}
+      {% if view_only %}View{% elif o.id in applied_ids %}Applied{% else %}View & Apply{% endif %}
     </a>
   </div>
 </article>

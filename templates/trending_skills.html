@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Trending Market Skills &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Trending market skills</h1>
+    <p class="muted">How often each skill is required across live industry postings right now
+       &mdash; the skills employers are actually asking for.</p>
+  </div>
+  <span class="badge badge-brand">{{ demand|length }} skills tracked</span>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>Demand ranking</h2>
+    <span class="small muted">Times required across postings</span></div>
+  <ul class="list">
+    {% for name, count in demand %}
+    <li>
+      <div class="item-head">
+        <span class="item-title">{{ loop.index }}. {{ name }}</span>
+        <span class="badge badge-brand">{{ count }} posting(s)</span>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width: {{ (count / top * 100)|round }}%"></div></div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="card mt">
+  <div class="card-head"><h3>How to use this</h3></div>
+  <p class="small muted" style="margin:0">Skills near the top are the safest bet for new
+     training programmes and FDPs &mdash; they show up most often in what industry is currently
+     posting on this portal. Compare against "Institutional skill gaps" on the
+     <a href="{{ url_for('analytics') }}">Analytics</a> page to see where student skill levels
+     lag behind market demand.</p>
+</div>
+{% endblock %}

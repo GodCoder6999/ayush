@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ c.title }} &middot; Academia-Industry Portal{% endblock %}
+
+{% block content %}
+<p class="small"><a href="{{ url_for('collaboration') }}">&larr; Back to collaboration</a></p>
+
+<div class="card">
+  <div class="card-head">
+    <div>
+      <h1>{{ c.title }}</h1>
+      <p class="muted" style="margin:0">{{ c.org }}</p>
+    </div>
+    <span class="badge badge-accent">{{ c.type }}</span>
+  </div>
+
+  <p>{{ c.description }}</p>
+
+  <div class="grid grid-2 mb">
+    <div><div class="stat-label">Capacity</div><b>{{ c.slots }}</b></div>
+    <div><div class="stat-label">Open to</div><b>Students, academicians and industry partners</b></div>
+  </div>
+
+  {% if user.role in ['student', 'academician', 'industry'] %}
+    <form method="post" action="{{ url_for('collaboration_interest', cid=c.id) }}">
+      <button type="submit" class="btn">Show interest</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

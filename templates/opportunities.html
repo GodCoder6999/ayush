@@ -41,7 +41,7 @@
 
 {% if items %}
 <div class="grid grid-3">
-  {% for o in items %}{{ opportunity_card(o, applied_ids) }}{% endfor %}
+  {% for o in items %}{{ opportunity_card(o, applied_ids, view_only=(user.role == 'institution')) }}{% endfor %}
 </div>
 {% else %}
 <div class="empty">No opportunities match your search. Try a different keyword or type.</div>
